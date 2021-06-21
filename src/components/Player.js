@@ -55,34 +55,48 @@ const Player = ({
       Math.floor(time / 60) + ":" + ("0" + Math.floor(time % 60)).slice(-2)
     );
   };
-  const skipTrackHandler = (direction) => {
+  const skipTrackHandler = async (direction) => {
     let currentIndex = songs.findIndex((song) => song.id === currentSong.id);
     if (direction === "skip-forward") {
-      setCurrentSong(songs[(currentIndex + 1) % songs.length]);
+      await setCurrentSong(songs[(currentIndex + 1) % songs.length]);
     }
     if (direction === "skip-back") {
       if ((currentIndex - 1) % songs.length === -1) {
-        setCurrentSong(songs[songs.length - 1]);
+        await setCurrentSong(songs[songs.length - 1]);
+        if (isPlaying) audioRef.current.play();
         return;
       }
-      setCurrentSong(songs[(currentIndex - 1) % songs.length]);
+      await setCurrentSong(songs[(currentIndex - 1) % songs.length]);
     }
+    if (isPlaying) audioRef.current.play();
   };
 
-  //STATE
+  //Styles
+
+  const trackAnim = {
+    transform: `translateX(${songInfo.animationPercentage}%)`,
+  };
 
   return (
     <div className="player">
       <div className="time-control">
         <p>{getTimeRounded(songInfo.currentTime)}</p>
-        <input
-          onChange={dragHandler}
-          min={0}
-          max={songInfo.duration || 0}
-          value={songInfo.currentTime}
-          type="range"
-        />
-        <p>{getTimeRounded(songInfo.duration)}</p>
+        <div
+          style={{
+            background: `linear-gradient(to right, ${currentSong.color[0]}, ${currentSong.color[1]} )`,
+          }}
+          className="track"
+        >
+          <input
+            onChange={dragHandler}
+            min={0}
+            max={songInfo.duration || 0}
+            value={songInfo.currentTime}
+            type="range"
+          />
+          <div style={trackAnim} className="animate-track"></div>
+        </div>
+        <p>{songInfo.duration ? getTimeRounded(songInfo.duration) : "0.00"}</p>
       </div>
       <div className="play-control">
         <FontAwesomeIcon
